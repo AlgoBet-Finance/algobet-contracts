@@ -3,20 +3,11 @@
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 // AGB Token based on ERC-20 standard
-contract AGB is ERC20 {
-    uint256 private _cap;
-    uint256 public allowTransferOn;
-
-    function __AGBToken_init(uint256 allowTransferOn_, address dev_) public initializer{
-        _cap = 1000000000e18;
-        allowTransferOn = allowTransferOn_; 
-
-        __ERC20_init("AGB Finance", "AGB");
-        __ERC20Capped_init(_cap);
-        __Ownable_init();
-    }
+contract AGBToken is ERC20, Ownable {
+    constructor() ERC20("AlgoBet Token", "AGB"){}
 
     /**
      * @dev See {ERC20-_mint}.
