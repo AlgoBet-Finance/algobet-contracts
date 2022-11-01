@@ -8,7 +8,7 @@ import '@openzeppelin/contracts/token/ERC1155/IERC1155.sol';
 
 contract NFTMarket is ReentrancyGuard {
     using Counters for Counters.Counter;
-    Counters.Counter private _itemIds;
+    Counters.Counter public itemIds;
     address payable owner;
     uint256 listingPrice = 0.0025 ether;
 
@@ -67,7 +67,7 @@ contract NFTMarket is ReentrancyGuard {
             msg.value == listingPrice,
             'Order fee must be equal to listing price'
         );
-        uint256 itemId = _itemIds.current();
+        uint256 itemId = itemIds.current();
 
         idToMarketItem[itemId] = MarketItem(
             itemId,
@@ -83,7 +83,7 @@ contract NFTMarket is ReentrancyGuard {
 
         IERC1155(nftContract).safeTransferFrom(msg.sender, address(this), tokenId, amount, "");
 
-        _itemIds.increment();
+        itemIds.increment();
 
         emit MarketItemStatus(
             itemId,
