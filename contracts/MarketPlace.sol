@@ -5,12 +5,13 @@ import '@openzeppelin/contracts/utils/Counters.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/token/ERC1155/ERC1155.sol';
 import '@openzeppelin/contracts/token/ERC1155/IERC1155.sol';
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import '@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol';
 
-contract NFTMarket is ReentrancyGuard {
+contract MarketPlace is ReentrancyGuard, ERC1155Holder {
     using Counters for Counters.Counter;
     Counters.Counter public itemIds;
-    address payable owner;
-    uint256 listingPrice = 0.0025 ether;
+    address agbToken;
 
     event MarketItemStatus(
         uint256 itemId,
@@ -34,13 +35,8 @@ contract NFTMarket is ReentrancyGuard {
     //use itemIdToMarketItem[itemId] to get Item
     mapping(uint256 => MarketItem) public idToMarketItem;
 
-    constructor() {
-        owner = payable(msg.sender);
-    }
-
-    /* Returns the listing price of the contract */
-    function getListingPrice() public view returns (uint256) {
-        return listingPrice;
+    constructor(address _agbToken) {
+        agbToken = _agbToken;
     }
 
     /* Returns the market item by item id */
@@ -63,10 +59,6 @@ contract NFTMarket is ReentrancyGuard {
         uint256 amount,
         uint256 price
     ) public payable nonReentrant {
-        require(
-            msg.value == listingPrice,
-            'Order fee must be equal to listing price'
-        );
         uint256 itemId = itemIds.current();
 
         idToMarketItem[itemId] = MarketItem(
@@ -80,41 +72,36 @@ contract NFTMarket is ReentrancyGuard {
             false,
             false
         );
-
-        IERC1155(nftContract).safeTransferFrom(msg.sender, address(this), tokenId, amount, "");
-
-        itemIds.increment();
-
-        emit MarketItemStatus(
-            itemId,
-            price,
-            false,
-            false
+        IERC1155(nftContract).safeTransferFrom(
+            msg.sender,
+            address(this),
+            tokenId,
+            amount,
+            ''
         );
+        itemIds.increment();
+        emit MarketItemStatus(itemId, price, false, false);
     }
 
     /// @notice Buy nft
     /// @param _itemId id of market item
     function buy(uint256 _itemId) public payable nonReentrant {
-        require(
-            msg.sender != idToMarketItem[_itemId].seller,
-            'Asker must not be owner'
-        );
         require(!idToMarketItem[_itemId].isSold, 'Item has been sold');
         require(!idToMarketItem[_itemId].isCanceled, 'Item has been cancelled');
-        require(
-            idToMarketItem[_itemId].price == msg.value,
-            'Price must equal to price to buy'
+        IERC20(agbToken).transferFrom(
+            msg.sender,
+            idToMarketItem[_itemId].seller,
+            idToMarketItem[_itemId].price
         );
-
+        IERC1155(idToMarketItem[_itemId].nftContract).safeTransferFrom(
+            address(this),
+            msg.sender,
+            idToMarketItem[_itemId].tokenId,
+            idToMarketItem[_itemId].amount,
+            ''
+        );
         idToMarketItem[_itemId].buyer = payable(msg.sender);
         idToMarketItem[_itemId].isSold = true;
-        idToMarketItem[_itemId].seller.transfer(msg.value);
-
-        IERC1155(idToMarketItem[_itemId].nftContract).safeTransferFrom(address(this), msg.sender, idToMarketItem[_itemId].tokenId, idToMarketItem[_itemId].amount, "");
-
-        payable(owner).transfer(listingPrice);
-
         emit MarketItemStatus(
             _itemId,
             idToMarketItem[_itemId].price,
@@ -133,10 +120,14 @@ contract NFTMarket is ReentrancyGuard {
             idToMarketItem[_itemId].buyer == address(0),
             'Item has been sold'
         );
-        IERC1155(idToMarketItem[_itemId].nftContract).safeTransferFrom(address(this), msg.sender, idToMarketItem[_itemId].tokenId, idToMarketItem[_itemId].amount, "");
         idToMarketItem[_itemId].isCanceled = true;
-        idToMarketItem[_itemId].seller.transfer(listingPrice);
-
+        IERC1155(idToMarketItem[_itemId].nftContract).safeTransferFrom(
+            address(this),
+            msg.sender,
+            idToMarketItem[_itemId].tokenId,
+            idToMarketItem[_itemId].amount,
+            ''
+        );
         emit MarketItemStatus(
             _itemId,
             idToMarketItem[_itemId].price,

@@ -5,6 +5,8 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/utils/Strings.sol';
 import '@openzeppelin/contracts/utils/cryptography/ECDSA.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import '@openzeppelin/contracts/token/ERC1155/IERC1155.sol';
+import './interfaces/IStarTicket.sol';
 
 contract Bet is Ownable {
     using ECDSA for bytes32;
@@ -43,6 +45,7 @@ contract Bet is Ownable {
         uint8 betResult;
         uint16 oddsBet; // 2/100 ~ 0.02
         uint256 amount;
+        uint8 starTicketId;
         bool isClaim;
     }
 
@@ -108,6 +111,7 @@ contract Bet is Ownable {
         uint256 _amount,
         uint16 _oddsBet,
         uint8 _betResult,
+        uint8 _starTicketId,
         bytes memory _hashedMessage
     ) public {
         MatchInfo memory matchInfo = idToMatchInfo[_matchId];
@@ -121,8 +125,7 @@ contract Bet is Ownable {
         if (_betType == FULLTIME && matchInfo.fulltimeResult != NOT_END) {
             isValidBet = false;
         }
-        require(isValidBet, "This bet infomation is invalid");
-        // require(!idToMatchInfo[_matchId].isStopBet, 'This match was ended');
+        require(isValidBet, 'This bet infomation is invalid');
         isValidBet = verifyMessage(
             _matchId,
             _betType,
@@ -130,7 +133,13 @@ contract Bet is Ownable {
             _oddsBet,
             _hashedMessage
         );
-        require(isValidBet, "This bet signature is invalid");
+        require(isValidBet, 'This bet signature is invalid');
+        if (_starTicketId > 0) {
+            require(
+                IERC1155(starTicket).balanceOf(msg.sender, _starTicketId) > 0,
+                'Star ticket is invalid'
+            );
+        }
         uint256 itemId = betIds.current();
         idToBetInfo[itemId] = BetInfo(
             itemId,
@@ -139,10 +148,11 @@ contract Bet is Ownable {
             _betResult,
             _oddsBet,
             _amount,
+            _starTicketId,
             false
         );
         betIds.increment();
-        IERC20(agbToken).transferFrom(msg.sender, address(this), _amount);
+        IERC20(agbToken).transferFrom(msg.sender, treasury, _amount);
         // Event here
     }
 
@@ -150,31 +160,52 @@ contract Bet is Ownable {
         BetInfo storage betInfo = idToBetInfo[_betId];
         MatchInfo memory matchInfo = idToMatchInfo[betInfo.matchId];
         bool isValidClaim = true;
-        if (betInfo.betType == FIRST_HALF && matchInfo.firstHalfResult == NOT_END) {
+        if (
+            betInfo.betType == FIRST_HALF &&
+            matchInfo.firstHalfResult == NOT_END
+        ) {
             isValidClaim = false;
         }
-        if (betInfo.betType == SECOND_HALF && matchInfo.secondHalfResult == NOT_END) {
+        if (
+            betInfo.betType == SECOND_HALF &&
+            matchInfo.secondHalfResult == NOT_END
+        ) {
             isValidClaim = false;
         }
-        if (betInfo.betType == FULLTIME && matchInfo.fulltimeResult == NOT_END) {
+        if (
+            betInfo.betType == FULLTIME && matchInfo.fulltimeResult == NOT_END
+        ) {
             isValidClaim = false;
         }
-        require(isValidClaim, "This claim infomation is invalid");
+        require(isValidClaim, 'This claim infomation is invalid');
         require(!betInfo.isClaim, 'User claimed');
         bool isWin = false;
-        if (betInfo.betType == FIRST_HALF && betInfo.betResult == matchInfo.firstHalfResult) {
+        if (
+            betInfo.betType == FIRST_HALF &&
+            betInfo.betResult == matchInfo.firstHalfResult
+        ) {
             isWin = true;
         }
-        if (betInfo.betType == SECOND_HALF && betInfo.betResult == matchInfo.secondHalfResult) {
+        if (
+            betInfo.betType == SECOND_HALF &&
+            betInfo.betResult == matchInfo.secondHalfResult
+        ) {
             isWin = true;
         }
-        if (betInfo.betType == FULLTIME && betInfo.betResult == matchInfo.fulltimeResult) {
+        if (
+            betInfo.betType == FULLTIME &&
+            betInfo.betResult == matchInfo.fulltimeResult
+        ) {
             isWin = true;
         }
         require(isWin, 'You lose');
         betInfo.isClaim = true;
-        uint256 reward = (betInfo.oddsBet * betInfo.amount) / 100;
-        IERC20(agbToken).transfer(msg.sender, reward);
+        uint16 bonus = 0;
+        if (betInfo.starTicketId > 0 ) {
+            bonus = IStarTicket(starTicket).getBonusProfit(betInfo.starTicketId);
+        } 
+        uint256 reward = (betInfo.oddsBet * betInfo.amount) / 100 + (bonus * (betInfo.oddsBet - 100)) / 100;
+        IERC20(agbToken).transferFrom(treasury, msg.sender, reward);
         // Event here
     }
 
