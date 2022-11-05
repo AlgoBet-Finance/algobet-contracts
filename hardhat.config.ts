@@ -16,6 +16,10 @@ const config: HardhatUserConfig = {
     localhost: {
       url: 'http://127.0.0.1:8545'
     },
+    bscTestnet: {
+      url: 'https://bsctestapi.terminet.io/rpc',
+      accounts: [process.env.PRIVATE_KEY as string]
+    }
   },
   solidity: {
     compilers: [

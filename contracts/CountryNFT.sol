@@ -48,9 +48,9 @@ contract CountryNFT is ERC1155, Ownable {
     uint8 constant SOUTH_KOREA = 31;
 
     uint256 constant USDTDecimal = 10**18;
-    address usdtToken;
-
-    address treasury;
+    
+    address public usdtToken;
+    address public treasury;
 
     constructor(
         string memory _uri,

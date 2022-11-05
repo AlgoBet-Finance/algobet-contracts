@@ -4,7 +4,7 @@ pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-// AGB Token based on ERC-20 standard
+// USDT based on ERC-20 standard
 contract USDT is ERC20 {
     constructor() ERC20("USD Tether", "USDT"){}
 

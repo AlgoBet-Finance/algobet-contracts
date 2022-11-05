@@ -13,7 +13,7 @@ contract StarTicket is ERC1155, Ownable {
     uint8 constant TICKET_5 = 5;
     uint8 constant TICKET_6 = 6;
 
-    mapping(uint8 => uint16) bonusProfit;
+    mapping(uint8 => uint16) public bonusProfit;
 
     constructor(string memory _uri) ERC1155(_uri) {
         bonusProfit[TICKET_1] = 3; // 3/100 = 3%
@@ -27,17 +27,12 @@ contract StarTicket is ERC1155, Ownable {
     function mint(
         address _to,
         uint256 _tokenId,
-        uint256 _amount,
-        bytes memory _data
+        uint256 _amount
     ) public onlyOwner {
-        _mint(_to, _tokenId, _amount, _data);
+        _mint(_to, _tokenId, _amount, '');
     }
 
-    function getBonusProfit(uint8 _ticketId) public view returns (uint16) {
-        require(
-            balanceOf(msg.sender, _ticketId) > 0,
-            'User do not have this ticket'
-        );
+    function getBonusProfit(address _to, uint8 _ticketId) public view returns (uint16) {
         uint16 bonus = bonusProfit[_ticketId];
         if (bonus == bonusProfit[TICKET_6]) {
             bonus = random();

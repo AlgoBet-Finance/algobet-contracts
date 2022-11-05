@@ -11,7 +11,7 @@ import '@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol';
 contract MarketPlace is ReentrancyGuard, ERC1155Holder {
     using Counters for Counters.Counter;
     Counters.Counter public itemIds;
-    address agbToken;
+    address public agbToken;
 
     event MarketItemStatus(
         uint256 itemId,
@@ -37,15 +37,6 @@ contract MarketPlace is ReentrancyGuard, ERC1155Holder {
 
     constructor(address _agbToken) {
         agbToken = _agbToken;
-    }
-
-    /* Returns the market item by item id */
-    function getMarketItem(uint256 itemId)
-        public
-        view
-        returns (MarketItem memory)
-    {
-        return idToMarketItem[itemId];
     }
 
     /// @notice Sell nft
@@ -88,6 +79,7 @@ contract MarketPlace is ReentrancyGuard, ERC1155Holder {
     function buy(uint256 _itemId) public payable nonReentrant {
         require(!idToMarketItem[_itemId].isSold, 'Item has been sold');
         require(!idToMarketItem[_itemId].isCanceled, 'Item has been cancelled');
+        require(idToMarketItem[_itemId].seller != msg.sender, 'Buyer is invalid');
         IERC20(agbToken).transferFrom(
             msg.sender,
             idToMarketItem[_itemId].seller,
