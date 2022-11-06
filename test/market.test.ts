@@ -109,9 +109,9 @@ describe('Market place', async function () {
           .connect(alice)
           .sell(countryNFT.address, 0, 1, parseEther('1000'))
       ).wait()
-      await expect(
-        marketPlace.connect(bob).buy(0)
-      ).to.be.revertedWith('ERC20: transfer amount exceeds balance')
+      await expect(marketPlace.connect(bob).buy(0)).to.be.revertedWith(
+        'ERC20: transfer amount exceeds balance'
+      )
     })
     it('This item is sold', async () => {
       await (
@@ -120,9 +120,9 @@ describe('Market place', async function () {
           .sell(countryNFT.address, 0, 1, parseEther('1'))
       ).wait()
       await (await marketPlace.connect(bob).buy(0)).wait()
-      await expect(
-        marketPlace.connect(bob).buy(0)
-      ).to.be.revertedWith('Item has been sold')
+      await expect(marketPlace.connect(bob).buy(0)).to.be.revertedWith(
+        'Item has been sold'
+      )
     })
     it('Buyer is invalid', async () => {
       await (
@@ -130,9 +130,9 @@ describe('Market place', async function () {
           .connect(alice)
           .sell(countryNFT.address, 0, 1, parseEther('1'))
       ).wait()
-      await expect(
-        marketPlace.connect(alice).buy(0)
-      ).to.be.revertedWith('Buyer is invalid')
+      await expect(marketPlace.connect(alice).buy(0)).to.be.revertedWith(
+        'Buyer is invalid'
+      )
     })
     it('This item was canceled', async () => {
       await (
@@ -141,9 +141,9 @@ describe('Market place', async function () {
           .sell(countryNFT.address, 0, 1, parseEther('1'))
       ).wait()
       await (await marketPlace.connect(alice).cancelMarketItem(0)).wait()
-      await expect(
-        marketPlace.connect(bob).buy(0)
-      ).to.be.revertedWith('Item has been cancelled')
+      await expect(marketPlace.connect(bob).buy(0)).to.be.revertedWith(
+        'Item has been cancelled'
+      )
     })
   })
   describe('Cancel item', async function () {

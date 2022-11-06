@@ -34,6 +34,24 @@ async function main() {
   // await marketPlace.deployed()
   // console.log('marketPlace deployed to:', marketPlace.address)
 
+  // Star ticket
+  // const StarTicket = await ethers.getContractFactory('StarTicket')
+  // const starTicket = await StarTicket.deploy(
+  //   ''
+  // )
+  // await starTicket.deployed()
+  // console.log('starTicket deployed to:', starTicket.address)
+
+  // Bet
+  const Bet = await ethers.getContractFactory('Bet')
+  const bet = await Bet.deploy(
+      owner.address,
+      '0xaf9412eFD48F534ecc06cA42391a7D3c49F92B66',
+      '0x9666Cfb212590A2E1ea5f9609cACD279D3357256'
+  )
+  await bet.deployed()
+  console.log('bet deployed to:', bet.address)
+
   console.log('Deploy end!!!')
 }
 

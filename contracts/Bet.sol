@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.4;
 
 import '@openzeppelin/contracts/utils/Counters.sol';
@@ -210,7 +211,6 @@ contract Bet is Ownable {
         uint16 bonus = 0;
         if (betInfo.starTicketId > 0) {
             bonus = IStarTicket(starTicket).getBonusProfit(
-                msg.sender,
                 betInfo.starTicketId
             );
         }

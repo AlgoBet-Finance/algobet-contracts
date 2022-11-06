@@ -11,7 +11,7 @@ import {
   NOT_END,
   parseEther,
   TICKET_1,
-  TICKET_2
+  TICKET_2, TICKET_6
 } from './constant'
 
 describe('Bet contract', async function () {
@@ -123,26 +123,41 @@ describe('Bet contract', async function () {
   describe('User Bet', async function () {
     beforeEach(async () => {
       await (await bet.createMatch('QATAR-GERMANY')).wait()
-      await (await agbToken.connect(alice).approve(bet.address, MAX_UINT256)).wait()
-      await (await agbToken.connect(bob).approve(bet.address, MAX_UINT256)).wait()
+      await (
+        await agbToken.connect(alice).approve(bet.address, MAX_UINT256)
+      ).wait()
+      await (
+        await agbToken.connect(bob).approve(bet.address, MAX_UINT256)
+      ).wait()
     })
     it('Successful', async () => {
-      const messageHashBytes = await bet.getMessageHash('0', FIRST_HALF, parseEther('1'), 200)
+      const messageHashBytes = await bet.getMessageHash(
+        '0',
+        FIRST_HALF,
+        parseEther('1'),
+        200
+      )
       //
       // let wallet = new ethers.Wallet("private_key");
       // const signature = await wallet.signMessage(ethers.utils.arrayify(messageHashBytes));
       //
-      const signature = await owner.signMessage(ethers.utils.arrayify(messageHashBytes));
+      const signature = await owner.signMessage(
+        ethers.utils.arrayify(messageHashBytes)
+      )
 
-      await (await bet.connect(alice).userBet(
-        0,
-        FIRST_HALF,
-        parseEther('1'),
-        200,
-        A_WIN,
-        NO_TICKET,
-        signature
-      )).wait()
+      await (
+        await bet
+          .connect(alice)
+          .userBet(
+            0,
+            FIRST_HALF,
+            parseEther('1'),
+            200,
+            A_WIN,
+            NO_TICKET,
+            signature
+          )
+      ).wait()
 
       const betInfo = await bet.idToBetInfo(0)
       assert.equal(betInfo['betType'].toString(), FIRST_HALF)
@@ -153,119 +168,238 @@ describe('Bet contract', async function () {
     })
     it('This bet information is invalid', async () => {
       await (await bet.updateFirstHalf(0, A_WIN)).wait()
-      const messageHashBytes = await bet.getMessageHash('0', FIRST_HALF, parseEther('1'), 200)
-      const signature = await owner.signMessage(ethers.utils.arrayify(messageHashBytes));
-      await expect(bet.connect(alice).userBet(
-          0,
-          FIRST_HALF,
-          parseEther('1'),
-          200,
-          A_WIN,
-          NO_TICKET,
-          signature
-      )).to.be.revertedWith(
-          'This bet information is invalid'
+      const messageHashBytes = await bet.getMessageHash(
+        '0',
+        FIRST_HALF,
+        parseEther('1'),
+        200
       )
+      const signature = await owner.signMessage(
+        ethers.utils.arrayify(messageHashBytes)
+      )
+      await expect(
+        bet
+          .connect(alice)
+          .userBet(
+            0,
+            FIRST_HALF,
+            parseEther('1'),
+            200,
+            A_WIN,
+            NO_TICKET,
+            signature
+          )
+      ).to.be.revertedWith('This bet information is invalid')
     })
     it('This bet signature is invalid', async () => {
-      const messageHashBytes = await bet.getMessageHash('0', FIRST_HALF, parseEther('1'), 200)
-      const signature = await alice.signMessage(ethers.utils.arrayify(messageHashBytes));
-      await expect(bet.connect(alice).userBet(
-          0,
-          FIRST_HALF,
-          parseEther('1'),
-          200,
-          A_WIN,
-          NO_TICKET,
-          signature
-      )).to.be.revertedWith(
-          'This bet signature is invalid'
+      const messageHashBytes = await bet.getMessageHash(
+        '0',
+        FIRST_HALF,
+        parseEther('1'),
+        200
       )
+      const signature = await alice.signMessage(
+        ethers.utils.arrayify(messageHashBytes)
+      )
+      await expect(
+        bet
+          .connect(alice)
+          .userBet(
+            0,
+            FIRST_HALF,
+            parseEther('1'),
+            200,
+            A_WIN,
+            NO_TICKET,
+            signature
+          )
+      ).to.be.revertedWith('This bet signature is invalid')
     })
     it('Star ticket is invalid', async () => {
-      const messageHashBytes = await bet.getMessageHash('0', FIRST_HALF, parseEther('1'), 200)
-      const signature = await owner.signMessage(ethers.utils.arrayify(messageHashBytes));
-      await expect(bet.connect(alice).userBet(
-          0,
+      const messageHashBytes = await bet.getMessageHash(
+        '0',
+        FIRST_HALF,
+        parseEther('1'),
+        200
+      )
+      const signature = await owner.signMessage(
+        ethers.utils.arrayify(messageHashBytes)
+      )
+      await expect(
+        bet
+          .connect(alice)
+          .userBet(
+            0,
+            FIRST_HALF,
+            parseEther('1'),
+            200,
+            A_WIN,
+            TICKET_1,
+            signature
+          )
+      ).to.be.revertedWith('Star ticket is invalid')
+    })
+    it('Fake ticket', async () => {
+      await (
+          await starTicket.connect(alice).setApprovalForAll(bet.address, true)
+      ).wait()
+      // await (await starTicket.mint(alice.address, 10, 1)).wait()
+      const messageHashBytes = await bet.getMessageHash(
+          '0',
           FIRST_HALF,
           parseEther('1'),
-          200,
-          A_WIN,
-          TICKET_1,
-          signature
-      )).to.be.revertedWith(
-          'Star ticket is invalid'
+          200
       )
+      const signature = await owner.signMessage(
+          ethers.utils.arrayify(messageHashBytes)
+      )
+      await expect(
+          bet
+              .connect(alice)
+              .userBet(
+                  0,
+                  FIRST_HALF,
+                  parseEther('1'),
+                  200,
+                  A_WIN,
+                  10,
+                  signature
+              )
+      ).to.be.revertedWith('Star ticket is invalid')
     })
   })
-  describe.only('User Claim', async function () {
+  describe('User Claim', async function () {
     beforeEach(async () => {
       await (await bet.createMatch('QATAR-GERMANY')).wait()
-      await (await agbToken.connect(alice).approve(bet.address, MAX_UINT256)).wait()
-      await (await agbToken.connect(bob).approve(bet.address, MAX_UINT256)).wait()
-      await (await agbToken.connect(owner).approve(bet.address, MAX_UINT256)).wait()
-      const messageHashBytes = await bet.getMessageHash('0', FIRST_HALF, parseEther('1'), 200)
-      const signature = await owner.signMessage(ethers.utils.arrayify(messageHashBytes));
-      await (await bet.connect(alice).userBet(
-          0,
-          FIRST_HALF,
-          parseEther('1'),
-          200,
-          A_WIN,
-          NO_TICKET,
-          signature
-      )).wait()
+      await (
+        await agbToken.connect(alice).approve(bet.address, MAX_UINT256)
+      ).wait()
+      await (
+        await agbToken.connect(bob).approve(bet.address, MAX_UINT256)
+      ).wait()
+      await (
+        await agbToken.connect(owner).approve(bet.address, MAX_UINT256)
+      ).wait()
+      const messageHashBytes = await bet.getMessageHash(
+        '0',
+        FIRST_HALF,
+        parseEther('1'),
+        200
+      )
+      const signature = await owner.signMessage(
+        ethers.utils.arrayify(messageHashBytes)
+      )
+      await (
+        await bet
+          .connect(alice)
+          .userBet(
+            0,
+            FIRST_HALF,
+            parseEther('1'),
+            200,
+            A_WIN,
+            NO_TICKET,
+            signature
+          )
+      ).wait()
     })
     it('Successful', async () => {
       await (await bet.updateFirstHalf(0, A_WIN)).wait()
-      await (await bet.connect(bob).userClaim(0)).wait()
+      await (await bet.connect(alice).userClaim(0)).wait()
       const aliceBalance = await agbToken.balanceOf(alice.address)
       assert.equal(aliceBalance.toString(), parseEther('101').toString())
     })
     it('This claim information is invalid', async () => {
       await expect(bet.connect(alice).userClaim(0)).to.be.revertedWith(
-          'This claim information is invalid'
+        'This claim information is invalid'
       )
     })
     it('User claimed', async () => {
       await (await bet.updateFirstHalf(0, A_WIN)).wait()
       await (await bet.connect(alice).userClaim(0)).wait()
       await expect(bet.connect(alice).userClaim(0)).to.be.revertedWith(
-          'User claimed'
+        'User claimed'
       )
     })
     it('You lose', async () => {
       await (await bet.updateFirstHalf(0, B_WIN)).wait()
       await expect(bet.connect(alice).userClaim(0)).to.be.revertedWith(
-          'You lose'
+        'You lose'
       )
     })
-    it.only('Ticket used', async () => {
+    it('Ticket used', async () => {
       await (
-          await starTicket
-              .connect(alice)
-              .setApprovalForAll(bet.address, true)
+        await starTicket.connect(alice).setApprovalForAll(bet.address, true)
       ).wait()
       await (await starTicket.mint(alice.address, TICKET_2, 1)).wait()
-      const messageHashBytes = await bet.getMessageHash('0', FIRST_HALF, parseEther('1'), 200)
-      const signature = await owner.signMessage(ethers.utils.arrayify(messageHashBytes));
-      await (await bet.connect(alice).userBet(
-          0,
-          FIRST_HALF,
-          parseEther('1'),
-          200,
-          A_WIN,
-          TICKET_2,
-          signature
-      )).wait()
+      const messageHashBytes = await bet.getMessageHash(
+        '0',
+        FIRST_HALF,
+        parseEther('1'),
+        200
+      )
+      const signature = await owner.signMessage(
+        ethers.utils.arrayify(messageHashBytes)
+      )
+      await (
+        await bet
+          .connect(alice)
+          .userBet(
+            0,
+            FIRST_HALF,
+            parseEther('1'),
+            200,
+            A_WIN,
+            TICKET_2,
+            signature
+          )
+      ).wait()
       await (await bet.updateFirstHalf(0, A_WIN)).wait()
       await (await bet.connect(alice).userClaim(1)).wait()
-      const balanceTicket2Owner = await starTicket.balanceOf(owner.address, TICKET_2)
-      const balanceTicket2Alice = await starTicket.balanceOf(alice.address, TICKET_2)
+      const balanceTicket2Owner = await starTicket.balanceOf(
+        owner.address,
+        TICKET_2
+      )
+      const balanceTicket2Alice = await starTicket.balanceOf(
+        alice.address,
+        TICKET_2
+      )
       assert.equal(balanceTicket2Owner.toString(), '1')
       assert.equal(balanceTicket2Alice.toString(), '0')
       const aliceBalance = await agbToken.balanceOf(alice.address)
-      console.log('aliceBalance :>>', aliceBalance.toString())
+    })
+    it.only('Ticket random', async () => {
+      await (
+        await starTicket.connect(alice).setApprovalForAll(bet.address, true)
+      ).wait()
+      await (await starTicket.mint(alice.address, TICKET_6, 1)).wait()
+      const messageHashBytes = await bet.getMessageHash(
+        '0',
+        FIRST_HALF,
+        parseEther('1'),
+        200
+      )
+      const signature = await owner.signMessage(
+        ethers.utils.arrayify(messageHashBytes)
+      )
+      await (
+        await bet
+          .connect(alice)
+          .userBet(
+            0,
+            FIRST_HALF,
+            parseEther('1'),
+            200,
+            A_WIN,
+            TICKET_6,
+            signature
+          )
+      ).wait()
+      await (await bet.updateFirstHalf(0, A_WIN)).wait()
+      await (await bet.connect(alice).userClaim(1)).wait()
+      const aliceBalance = await agbToken.balanceOf(alice.address)
+      assert.equal(aliceBalance.gt(parseEther('120')), true)
+      assert.equal(aliceBalance.lt(parseEther('150')), true)
     })
   })
 })

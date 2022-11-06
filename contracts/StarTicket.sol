@@ -32,7 +32,7 @@ contract StarTicket is ERC1155, Ownable {
         _mint(_to, _tokenId, _amount, '');
     }
 
-    function getBonusProfit(address _to, uint8 _ticketId) public view returns (uint16) {
+    function getBonusProfit(uint8 _ticketId) public view returns (uint16) {
         uint16 bonus = bonusProfit[_ticketId];
         if (bonus == bonusProfit[TICKET_6]) {
             bonus = random();
@@ -42,10 +42,7 @@ contract StarTicket is ERC1155, Ownable {
 
     function random() private view returns (uint16) {
         uint256 randomNumber = uint256(keccak256(abi.encodePacked(block.difficulty, block.timestamp, block.number, block.coinbase)));
-        uint16 firstFandom = uint16(randomNumber % 50);
-        if (firstFandom < 20) {
-            return uint16(firstFandom + (randomNumber % 20));
-        }
-        return firstFandom;
+        uint16 number = uint16(randomNumber % 30);
+        return number + 20;
     }
 }

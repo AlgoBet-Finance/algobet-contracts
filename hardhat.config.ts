@@ -28,10 +28,10 @@ const config: HardhatUserConfig = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 200,
-          },
-        },
-      },
+            runs: 200
+          }
+        }
+      }
     ]
   },
   typechain: {
@@ -43,7 +43,7 @@ const config: HardhatUserConfig = {
   paths: {
     root: './',
     cache: './cache',
-    artifacts: './artifacts',
+    artifacts: './artifacts'
   },
   mocha: {
     timeout: 200000

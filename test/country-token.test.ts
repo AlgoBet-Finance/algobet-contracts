@@ -66,9 +66,7 @@ describe('NftContract', async function () {
       ).wait()
     })
     it('Successful', async () => {
-      await (
-        await countryNFT.connect(alice).burnCountryNft(0, 1)
-      ).wait()
+      await (await countryNFT.connect(alice).burnCountryNft(0, 1)).wait()
       const countryQatarAmount = await countryNFT.balanceOf(alice.address, 0)
       assert.equal(countryQatarAmount.toString(), '0')
     })
