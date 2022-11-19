@@ -11,8 +11,8 @@ contract AGBToken is ERC20, ERC20Capped, Ownable {
   /// Token name: AlgoBet
   /// Token symbol: AGB
   /// Max cap: 500.000.000 tokens
-  constructor() ERC20('AlgoBet', 'AGB') ERC20Capped(500000000) {
-    mint(msg.sender, 500000000);
+  constructor() ERC20('AlgoBet', 'AGB') ERC20Capped(500000000*1e18) {
+    mint(msg.sender, 500000000*1e18);
   }
 
   /**
@@ -24,10 +24,9 @@ contract AGBToken is ERC20, ERC20Capped, Ownable {
   }
 
   /**
-   * @dev See {ERC20-_mint}.
+   * @dev See {ERC20Capped-_mint}.
    */
   function _mint(address account, uint256 amount) internal virtual override(ERC20Capped, ERC20) {
-    require(ERC20.totalSupply() + amount <= cap(), 'ERC20Capped: cap exceeded');
-    super._mint(account, amount);
+    ERC20Capped._mint(account, amount);
   }
 }
