@@ -1,21 +1,12 @@
 {
   "compilerOptions": {
-    "baseUrl": "./",
     "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "esModuleInterop": true,
     "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
     "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve"
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "dist"
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "./scripts", "./test"],
-  "exclude": ["node_modules"],
-  "files": ["./hardhat.config.ts"]
+  "include": ["hardhat.config.ts", "./scripts", "./deploy", "./test"]
 }
