@@ -78,6 +78,14 @@ const config: HardhatUserConfig = {
       loggingEnabled: true,
       url: `https://rpc.ankr.com/avalanche_fuji`,
     },
+    goerli: {
+      tags: ['development'],
+      live: true,
+      saveDeployments: true,
+      accounts,
+      loggingEnabled: true,
+      url: `https://rpc.ankr.com/eth_goerli`,
+    },
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
