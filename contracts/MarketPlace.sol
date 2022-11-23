@@ -40,10 +40,10 @@ contract MarketPlace is ReentrancyGuard, ERC1155Holder {
     }
 
     /// @notice Sell nft
-    /// @param nftContract
-    /// @param tokenId
-    /// @param amount
-    /// @param price
+    /// @param nftContract nft contact for sell
+    /// @param tokenId nft token id for sell
+    /// @param amount amount sell
+    /// @param price price sell
     function sell(
         address nftContract,
         uint256 tokenId,
