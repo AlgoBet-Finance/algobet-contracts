@@ -32,6 +32,26 @@ contract Bet is Ownable {
     mapping(uint256 => MatchInfo) public idToMatchInfo;
     mapping(uint256 => BetInfo) public idToBetInfo;
 
+    event MatchStatus(
+        uint256 itemId,
+        string matchCode,
+        uint8 firstHalfResult,
+        uint8 secondHalfResult,
+        uint8 fulltimeResult
+    );
+
+    event BetStatus(
+        uint256 betId,
+        uint256 matchId,
+        uint8 betType,
+        uint8 betResult,
+        uint16 oddsBet, // 2/100 ~ 0.02
+        uint256 amount,
+        uint8 starTicketId,
+        address user,
+        bool isClaim
+    );
+
     struct MatchInfo {
         uint256 itemId;
         string matchCode;
@@ -66,14 +86,26 @@ contract Bet is Ownable {
         uint256 itemId = matchIds.current();
         idToMatchInfo[itemId] = MatchInfo(itemId, _matchCode, 0, 0, 0);
         matchIds.increment();
-        // Event here
+        emit MatchStatus(
+            itemId,
+            _matchCode,
+            0,
+            0,
+            0
+        );
     }
 
     function updateFirstHalf(uint256 _matchId, uint8 _result) public onlyOwner {
         MatchInfo memory matchInfo = idToMatchInfo[_matchId];
         require(matchInfo.firstHalfResult == NOT_END, 'First half was updated');
         idToMatchInfo[_matchId].firstHalfResult = _result;
-        // Event here
+        emit MatchStatus(
+            _matchId,
+            matchInfo.matchCode,
+            _result,
+            0,
+            0
+        );
     }
 
     function updateSecondHalf(uint256 _matchId, uint8 _result)
@@ -90,7 +122,13 @@ contract Bet is Ownable {
             'Second half was updated'
         );
         idToMatchInfo[_matchId].secondHalfResult = _result;
-        // Event here
+        emit MatchStatus(
+            _matchId,
+            matchInfo.matchCode,
+            matchInfo.firstHalfResult,
+            _result,
+            0
+        );
     }
 
     function updateFulltime(uint256 _matchId, uint8 _result) public onlyOwner {
@@ -105,7 +143,13 @@ contract Bet is Ownable {
         );
         require(matchInfo.fulltimeResult == NOT_END, 'Fulltime was updated');
         idToMatchInfo[_matchId].fulltimeResult = _result;
-        // Event here
+        emit MatchStatus(
+            _matchId,
+            matchInfo.matchCode,
+            matchInfo.firstHalfResult,
+            matchInfo.secondHalfResult,
+            _result
+        );
     }
 
     function userBet(
@@ -161,7 +205,17 @@ contract Bet is Ownable {
         if (_starTicketId > 0) {
             IERC1155(starTicket).safeTransferFrom(msg.sender, treasury, _starTicketId, 1, '');
         }
-        // Event here
+        emit BetStatus(
+            itemId,
+            _matchId,
+            _betType,
+            _betResult,
+            _oddsBet,
+            _amount,
+            _starTicketId,
+            msg.sender,
+            false
+        );
     }
 
     function userClaim(uint256 _betId) public {
@@ -220,7 +274,17 @@ contract Bet is Ownable {
         (bonus * betInfo.amount * (betInfo.oddsBet - 100)) /
         100;
         IERC20(agbToken).transferFrom(treasury, msg.sender, reward);
-        // Event here
+        emit BetStatus(
+            _betId,
+            matchInfo.itemId,
+            betInfo.betType,
+            betInfo.betResult,
+            betInfo.oddsBet,
+            betInfo.amount,
+            betInfo.starTicketId,
+            msg.sender,
+            true
+        );
     }
 
     function getMessageHash(
