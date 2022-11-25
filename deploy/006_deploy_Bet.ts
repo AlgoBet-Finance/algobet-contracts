@@ -13,7 +13,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     contract: "Bet",
     skipIfAlreadyDeployed: true,
     from: deployer,
-    args: [],
+    args: [
+      deployer,
+      '0xaf9412eFD48F534ecc06cA42391a7D3c49F92B66',
+      '0x9666Cfb212590A2E1ea5f9609cACD279D3357256'
+    ],
     log: true,
   });
 
