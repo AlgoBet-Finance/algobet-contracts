@@ -49,7 +49,7 @@ contract MarketPlace is ReentrancyGuard, ERC1155Holder {
         uint256 tokenId,
         uint256 amount,
         uint256 price
-    ) public payable nonReentrant {
+    ) public nonReentrant {
         uint256 itemId = itemIds.current();
 
         idToMarketItem[itemId] = MarketItem(
@@ -76,7 +76,7 @@ contract MarketPlace is ReentrancyGuard, ERC1155Holder {
 
     /// @notice Buy nft
     /// @param _itemId id of market item
-    function buy(uint256 _itemId) public payable nonReentrant {
+    function buy(uint256 _itemId) public nonReentrant {
         require(!idToMarketItem[_itemId].isSold, 'Item has been sold');
         require(!idToMarketItem[_itemId].isCanceled, 'Item has been cancelled');
         require(idToMarketItem[_itemId].seller != msg.sender, 'Buyer is invalid');
@@ -102,7 +102,7 @@ contract MarketPlace is ReentrancyGuard, ERC1155Holder {
         );
     }
 
-    function cancelMarketItem(uint256 _itemId) public nonReentrant {
+    function cancel(uint256 _itemId) public nonReentrant {
         require(
             idToMarketItem[_itemId].seller == msg.sender,
             'Sender must be the seller'
