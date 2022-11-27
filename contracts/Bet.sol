@@ -177,6 +177,7 @@ contract Bet is Ownable {
             owner(),
             _matchId,
             _betType,
+            _betResult,
             _amount,
             _oddsBet,
             _hashedMessage
@@ -290,10 +291,11 @@ contract Bet is Ownable {
     function getMessageHash(
         uint256 _matchId,
         uint8 _betType,
+        uint8 _betResult,
         uint256 _amount,
         uint256 _oddsBet
     ) public pure returns (bytes32) {
         return
-        keccak256(abi.encodePacked(_matchId, _betType, _amount, _oddsBet));
+        keccak256(abi.encodePacked(_matchId, _betType, _betResult, _amount, _oddsBet));
     }
 }

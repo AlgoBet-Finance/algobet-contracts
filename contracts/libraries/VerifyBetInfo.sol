@@ -5,10 +5,11 @@ library VerifyBetInfo {
     function getMessageHash(
         uint256 _matchId,
         uint8 _betType,
+        uint8 _betResult,
         uint256 _amount,
         uint256 _oddsBet
     ) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_matchId, _betType, _amount, _oddsBet));
+        return keccak256(abi.encodePacked(_matchId, _betType, _betResult, _amount, _oddsBet));
     }
 
     function getEthSignedMessageHash(bytes32 _messageHash)
@@ -26,11 +27,12 @@ library VerifyBetInfo {
         address _signer,
         uint256 _matchId,
         uint8 _betType,
+        uint8 _betResult,
         uint256 _amount,
         uint256 _oddsBet,
         bytes memory signature
     ) internal pure returns (bool) {
-        bytes32 messageHash = getMessageHash(_matchId, _betType, _amount, _oddsBet);
+        bytes32 messageHash = getMessageHash(_matchId, _betType, _betResult, _amount, _oddsBet);
         bytes32 ethSignedMessageHash = getEthSignedMessageHash(messageHash);
         address signer = recoverSigner(ethSignedMessageHash, signature);
         return signer == _signer;
