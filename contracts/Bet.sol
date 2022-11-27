@@ -162,6 +162,7 @@ contract Bet is Ownable {
         bytes memory _hashedMessage
     ) public {
         MatchInfo memory matchInfo = idToMatchInfo[_matchId];
+        require(_betResult != NOT_END, 'This bet result is invalid');
         bool isValidBet = true;
         if (_betType == FIRST_HALF && matchInfo.firstHalfResult != NOT_END) {
             isValidBet = false;
